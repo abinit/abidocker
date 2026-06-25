@@ -20,10 +20,27 @@ build-environment/
 
 ## Available Build Environments
 
-| OS | Compiler | MPI | Math Lib | Directory | Description | Use Case |
-|----|----------|-----|----------|-----------|-------------|----------|
-| Ubuntu 22.04 | GCC/gfortran | No | Netlib BLAS/LAPACK | `ubuntu22.04-gcc-netlib/` | Minimal/Serial | Testing, CI/CD |
-| Ubuntu 22.04 | GCC/gfortran | OpenMPI | OpenBLAS + ScaLAPACK | `ubuntu22.04-gcc-openmpi-openblas/` | MPI Parallel | Production |
+|           OS |     Compiler |     MPI |             Math Lib |                                        Directory |    Description |       Use Case |
+|--------------|--------------|---------|----------------------|--------------------------------------------------|----------------|----------------|
+| Ubuntu 22.04 | GCC/gfortran |      No |   Netlib BLAS/LAPACK |                        `ubuntu22.04-gcc-netlib/` | Minimal/Serial | Testing, CI/CD |
+| Ubuntu 22.04 | GCC/gfortran | OpenMPI | OpenBLAS + ScaLAPACK |              `ubuntu22.04-gcc-openmpi-openblas/` |   MPI Parallel |     Production |
+| Ubuntu 22.04 |    NVHPC SDK | OpenMPI |   Netlib + ScaLAPACK |       `ubuntu22.04-nvhpc-openmpi-netlib-cuda11/` |    NVIDIA GPUs |     Production |
+| Ubuntu 24.04 |    NVHPC SDK | OpenMPI |   Netlib + ScaLAPACK |       `ubuntu24.04-nvhpc-openmpi-netlib-cuda12/` |    NVIDIA GPUs |     Production |
+| Ubuntu 24.04 |    NVHPC SDK | OpenMPI |   Netlib + ScaLAPACK | `ubuntu24.04-nvhpc-openmpi-netlib-cuda13-cmake/` |    NVIDIA GPUs |     Production |
+
+
+Note: recipes with NVHPC are based on images from [NVIDIA GPU Cloud (NGC)](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc) which requires to create an account for accessing their Docker images.
+
+## Experimental Build Environments
+
+The following environments target configurations that aren't production ready yet, especially in regard of GPU usage.
+They are useful for CI as most recent versions of ABINIT should compile in those and CPU tests should run as expected.
+
+|           OS |     Compiler |     MPI |             Math Lib |                                        Directory |    Description |       Use Case |
+|--------------|--------------|---------|----------------------|--------------------------------------------------|----------------|----------------|
+| Ubuntu 24.04 |    LLVM AOMP | OpenMPI |             OpenBLAS |        `ubuntu24.04-llvm-openmpi-openblas-rocm/` |       AMD GPUs | Testing, CI/CD |
+| Ubuntu 26.04 | GCC/gfortran | OpenMPI | OpenBLAS + ScaLAPACK |         `ubuntu26.04-gcc-openmpi-openblas-cuda/` |    NVIDIA GPUs | Testing, CI/CD |
+
 
 ## Image Naming Convention
 

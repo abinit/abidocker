@@ -26,6 +26,7 @@ install_build_tools() {
         gfortran \
         gcc \
         g++ \
+        gcc-offload-nvptx \
         make \
         autoconf \
         automake \
@@ -128,6 +129,7 @@ install_runtime_deps() {
         liblapack3 \
         libblas3 \
         libgfortran-15-dev \
+        libgomp-plugin-nvptx1 \
         libgomp1
     log_info "Runtime dependencies installed successfully"
 }
