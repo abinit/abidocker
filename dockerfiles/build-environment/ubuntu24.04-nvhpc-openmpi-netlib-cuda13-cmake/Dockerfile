@@ -181,7 +181,7 @@ RUN echo "Build Date: $(date -u)" > /opt/abinit/BUILD_INFO && \
     echo "ABINIT Branch: ${ABINIT_BRANCH}" >> /opt/abinit/BUILD_INFO && \
     echo "Configuration: mpi-netlib-cuda" >> /opt/abinit/BUILD_INFO && \
     echo "MPI Implementation: ${MPI_IMPL}" >> /opt/abinit/BUILD_INFO && \
-    echo "Compiler: GCC $(gcc --version | head -1)" >> /opt/abinit/BUILD_INFO && \
+    echo "Compiler: NVHPC $(nvc --version | grep nvc | cut -f2 -d' ')" >> /opt/abinit/BUILD_INFO && \
     echo "MPI Compiler: $(mpif90 --version | head -1)" >> /opt/abinit/BUILD_INFO && \
     echo "Linear Algebra: netlib BLAS & LAPACK" >> /opt/abinit/BUILD_INFO && \
     echo "FFT: FFTW3 (threaded)" >> /opt/abinit/BUILD_INFO && \
