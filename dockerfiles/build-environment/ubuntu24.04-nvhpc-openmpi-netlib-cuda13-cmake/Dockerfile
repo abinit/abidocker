@@ -220,6 +220,8 @@ ENV LD_LIBRARY_PATH=${FALLBACKS}/libxc/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/hdf5/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/netcdf4/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/netcdf4_fortran/default/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_aarch64/26.3/math_libs/nvpl/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_aarch64/26.3/math_libs/13.1/lib64:$LD_LIBRARY_PATH
 ENV ABI_PSPDIR="/opt/abinit/tests/Pspdir"
 ENV OMP_NUM_THREADS=1
 
