@@ -67,7 +67,9 @@ RUN cd /var/tmp/fftw-3.3.11 && \
     CXXFLAGS="${OPT_FLAGS}" \
     FCFLAGS="${OPT_FLAGS}" FFLAGS="${OPT_FLAGS}" \
     LDFLAGS=-Wl,--as-needed \
-    --prefix=/usr/local --enable-avx --enable-avx2 --enable-openmp --enable-shared --enable-sse2 --enable-threads --enable-float
+    --prefix=/usr/local --enable-openmp --enable-shared --enable-threads --enable-float
+#--enable-neon
+#--enable-avx --enable-avx2 --enable-sse2
 
 RUN cd /var/tmp/fftw-3.3.11 && \
     make -j$(nproc) && \
@@ -80,7 +82,9 @@ RUN cd /var/tmp/fftw-3.3.11 && \
     CXXFLAGS="${OPT_FLAGS}" \
     FCFLAGS="${OPT_FLAGS}" FFLAGS="${OPT_FLAGS}" \
     LDFLAGS=-Wl,--as-needed \
-    --prefix=/usr/local --enable-avx --enable-avx2 --enable-openmp --enable-shared --enable-sse2 --enable-threads
+    --prefix=/usr/local --enable-openmp --enable-shared --enable-threads
+#--enable-neon
+#--enable-avx --enable-avx2 --enable-sse2
 
 RUN cd /var/tmp/fftw-3.3.11 && \
     make -j$(nproc) && \
