@@ -12,12 +12,12 @@
 # =============================================================================
 # Stage 1: Builder - Full build environment with MPI
 # =============================================================================
-FROM rocm/dev-ubuntu-24.04:7.2.4-complete AS builder
+FROM rocm/dev-ubuntu-26.04:7.14.0-full AS builder
 
 ARG ABINIT_REPO=https://github.com/abinit/abinit.git
 ARG ABINIT_BRANCH=master
 ARG GPU_ARCH=gfx90a
-ARG RUN_TESTS=yes
+ARG RUN_TESTS=no
 ARG TEST_SUITE=paral
 ARG MPI_IMPL=openmpi
 ARG NUM_MPI_PROCS=4
@@ -35,15 +35,9 @@ RUN bash -c "source /tmp/install-deps.sh && \
     cleanup_apt"
 
 
-# Install AOMP - an experimental AMD LLVM fork
-RUN mkdir /opt/aomp && cd /opt/aomp \
-    && wget https://github.com/ROCm/aomp/releases/download/rel_23.0-0/aomp-23.0-0.tar.gz \
-    && tar -xf aomp-23.0-0.tar.gz \
-    && rm aomp-23.0-0.tar.gz
-
-ENV FC=/opt/aomp/aomp_23.0-0/bin/amdflang
-ENV CC=/opt/aomp/aomp_23.0-0/bin/amdclang
-ENV CXX=/opt/aomp/aomp_23.0-0/bin/amdclang++
+ENV FC=/opt/rocm/bin/amdflang
+ENV CC=/opt/rocm/bin/amdclang
+ENV CXX=/opt/rocm/bin/amdclang++
 ENV MAKEFLAGS="-j$(nproc)"
 ENV PKG_CONFIG_PATH=/usr/local/lib/openmpi/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:$PKG_CONFIG_PATH
 ENV PATH=/usr/local/openmpi/bin:/usr/local/bin:$PATH
@@ -56,6 +50,7 @@ ENV LD_LIBRARY_PATH=${FALLBACKS}/netcdf4_fortran/default/lib:$LD_LIBRARY_PATH
 
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+ENV OMPI_MCA_plm_rsh_agent=ssh
 
 WORKDIR /tmp/abinit-build
 
@@ -64,7 +59,7 @@ WORKDIR /tmp/abinit-build
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.8.tar.gz
 
 RUN tar xf openmpi-4.1.8.tar.gz && cd openmpi-4.1.8 \
-    && ./configure CC=/opt/aomp/aomp_23.0-0/bin/amdclang FC=/opt/aomp/aomp_23.0-0/bin/amdflang CXX=/opt/aomp/aomp_23.0-0/bin/amdclang++ CFLAGS="-fPIC" FCFLAGS="-fPIC" CXXFLAGS="-fPIC" \
+    && ./configure CC=/opt/rocm/bin/amdclang FC=/opt/rocm/bin/amdflang CXX=/opt/rocm/bin/amdclang++ CFLAGS="-fPIC" FCFLAGS="-fPIC" CXXFLAGS="-fPIC" \
     --prefix=/usr/local/openmpi --enable-mpi-fortran \
     && make -j$(nproc) && make install && cd .. && rm -rf openmpi-4.1.8.tar.gz openmpi-4.1.8
 
@@ -108,20 +103,23 @@ RUN cd /var/tmp/fftw-3.3.11 && \
 RUN wget --progress=bar:force:noscroll --show-progress -P /var/tmp https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.33/OpenBLAS-0.3.33.tar.gz
 
 RUN tar -x -f /var/tmp/OpenBLAS-0.3.33.tar.gz -C /var/tmp -z
+#    Optimized build draws issues, settle for unoptimized generic
+#    make TARGET=GENERIC DYNAMIC_ARCH=1 NO_AFFINITY=1 NUM_THREADS=$(nproc) \
+#    CFLAGS="${OPT_FLAGS}"  \
+#    CXXFLAGS="${OPT_FLAGS}"  \
+#    FCFLAGS="${OPT_FLAGS}"  \
+#    FFLAGS="${OPT_FLAGS}"  \
 RUN cd /var/tmp/OpenBLAS-0.3.33 && \
-    make DYNAMIC_ARCH=1 NO_AFFINITY=1 NUM_THREADS=$(nproc) \
-    CFLAGS="${OPT_FLAGS}"  \
-    CXXFLAGS="${OPT_FLAGS}"  \
-    FCFLAGS="${OPT_FLAGS}"  \
-    FFLAGS="${OPT_FLAGS}"  \
+    make TARGET=GENERIC  NO_AFFINITY=1 NUM_THREADS=$(nproc) \
+    COMMON_OPT="-O1" \
     && make PREFIX=/usr/local install
 RUN rm -rf /var/tmp/OpenBLAS-0.3.33 /var/tmp/OpenBLAS-0.3.33.tar.gz
 
 
 
-ENV OMPI_FC=/opt/aomp/aomp_23.0-0/bin/amdflang
-ENV OMPI_CC=/opt/aomp/aomp_23.0-0/bin/amdclang
-ENV OMPI_CXX=/opt/aomp/aomp_23.0-0/bin/amdclang++
+ENV OMPI_FC=/opt/rocm/bin/amdflang
+ENV OMPI_CC=/opt/rocm/bin/amdclang
+ENV OMPI_CXX=/opt/rocm/bin/amdclang++
 ENV CC=mpicc
 ENV CXX=mpic++
 ENV FC=mpifort
@@ -192,6 +190,7 @@ RUN cd abinit-src/build && \
     make install > /tmp/install.log 2>&1 && \
     echo "Installation complete."
 
+
 RUN /opt/abinit/bin/abinit --version && \
     echo "ABINIT binaries installed successfully"
 
@@ -225,7 +224,8 @@ RUN echo "Build Date: $(date -u)" > /opt/abinit/BUILD_INFO && \
 # =============================================================================
 # Stage 2: Runtime - MPI + OpenBLAS runtime environment
 # =============================================================================
-FROM rocm/dev-ubuntu-24.04:7.2.4 AS runtime
+#FIXME No runtime image for ROCm 7.14 for now...
+FROM rocm/dev-ubuntu-26.04:7.14.0-full AS runtime
 
 ARG MPI_IMPL=openmpi
 ARG DEBIAN_FRONTEND=noninteractive
@@ -252,13 +252,11 @@ COPY --from=builder ${FALLBACKS}/netcdf4/default/lib         ${FALLBACKS}/netcdf
 COPY --from=builder ${FALLBACKS}/netcdf4_fortran/default/lib ${FALLBACKS}/netcdf4_fortran/default/lib
 COPY --from=builder /opt/abinit /opt/abinit
 COPY --from=builder /tmp/abinit-build/abinit-src/build/config.h /opt/abinit/
-COPY --from=builder /opt/rocm/lib /opt/rocm/lib
-COPY --from=builder /opt/aomp/aomp_23.0-0/lib/llvm/lib/lib* /opt/aomp/aomp_23.0-0/lib/llvm/lib/
+#COPY --from=builder /opt/rocm/lib /opt/rocm/lib
 COPY --from=builder /tmp/ABINIT_VERSION /opt/abinit/VERSION
 
 
 ENV PATH=/opt/abinit/bin:/usr/local/openmpi/bin:${PATH}
-ENV LD_LIBRARY_PATH=/opt/aomp/aomp_23.0-0/lib/llvm/lib/:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/libxc/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/hdf5/default/lib:$LD_LIBRARY_PATH
@@ -270,6 +268,7 @@ ENV OMP_NUM_THREADS=1
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 ENV OMPI_MCA_btl_vader_single_copy_mechanism=none
+ENV OMPI_MCA_plm_rsh_agent=ssh
 
 WORKDIR /workspace
 

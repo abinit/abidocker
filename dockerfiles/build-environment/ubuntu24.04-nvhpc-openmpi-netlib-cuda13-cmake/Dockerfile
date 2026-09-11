@@ -76,7 +76,9 @@ RUN cd /var/tmp/fftw-3.3.11 && \
     CXXFLAGS="${OPT_FLAGS}" \
     FCFLAGS="${OPT_FLAGS}" FFLAGS="${OPT_FLAGS}" \
     LDFLAGS=-Wl,--as-needed \
-    --prefix=/usr/local --enable-avx --enable-avx2 --enable-openmp --enable-shared --enable-sse2 --enable-threads --enable-float
+    --prefix=/usr/local --enable-openmp --enable-shared --enable-threads --enable-float
+#--enable-neon
+#--enable-avx --enable-avx2 --enable-sse2
 
 RUN cd /var/tmp/fftw-3.3.11 && \
     make -j$(nproc) && \
@@ -89,7 +91,9 @@ RUN cd /var/tmp/fftw-3.3.11 && \
     CXXFLAGS="${OPT_FLAGS}" \
     FCFLAGS="${OPT_FLAGS}" FFLAGS="${OPT_FLAGS}" \
     LDFLAGS=-Wl,--as-needed \
-    --prefix=/usr/local --enable-avx --enable-avx2 --enable-openmp --enable-shared --enable-sse2 --enable-threads
+    --prefix=/usr/local --enable-openmp --enable-shared --enable-threads
+#--enable-neon
+#--enable-avx --enable-avx2 --enable-sse2
 
 RUN cd /var/tmp/fftw-3.3.11 && \
     make -j$(nproc) && \
@@ -177,7 +181,7 @@ RUN echo "Build Date: $(date -u)" > /opt/abinit/BUILD_INFO && \
     echo "ABINIT Branch: ${ABINIT_BRANCH}" >> /opt/abinit/BUILD_INFO && \
     echo "Configuration: mpi-netlib-cuda" >> /opt/abinit/BUILD_INFO && \
     echo "MPI Implementation: ${MPI_IMPL}" >> /opt/abinit/BUILD_INFO && \
-    echo "Compiler: GCC $(gcc --version | head -1)" >> /opt/abinit/BUILD_INFO && \
+    echo "Compiler: NVHPC $(nvc --version | grep nvc | cut -f2 -d' ')" >> /opt/abinit/BUILD_INFO && \
     echo "MPI Compiler: $(mpif90 --version | head -1)" >> /opt/abinit/BUILD_INFO && \
     echo "Linear Algebra: netlib BLAS & LAPACK" >> /opt/abinit/BUILD_INFO && \
     echo "FFT: FFTW3 (threaded)" >> /opt/abinit/BUILD_INFO && \
@@ -216,6 +220,8 @@ ENV LD_LIBRARY_PATH=${FALLBACKS}/libxc/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/hdf5/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/netcdf4/default/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=${FALLBACKS}/netcdf4_fortran/default/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_aarch64/26.3/math_libs/nvpl/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_aarch64/26.3/math_libs/13.1/lib64:$LD_LIBRARY_PATH
 ENV ABI_PSPDIR="/opt/abinit/tests/Pspdir"
 ENV OMP_NUM_THREADS=1
 
