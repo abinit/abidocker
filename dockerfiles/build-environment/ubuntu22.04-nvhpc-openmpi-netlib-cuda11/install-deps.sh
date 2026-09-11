@@ -35,8 +35,6 @@ install_build_tools() {
         wget \
         zlib1g-dev \
         libxml2-dev \
-        libatomic1 \
-        libquadmath0 \
         vim \
         git
     if [ $? -eq 0 ]; then log_info "Build tools installed successfully"; else exit 1; fi
