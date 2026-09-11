@@ -37,7 +37,7 @@ install_build_tools() {
         libxml2-dev \
         libatomic1 \
         libquadmath0 \
-        rsh-redone-client \
+        openssh-client \
         vim \
         git
     if [ $? -eq 0 ]; then log_info "Build tools installed successfully"; else exit 666; fi
@@ -62,7 +62,7 @@ install_runtime_deps() {
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         libatomic1 \
         libquadmath0 \
-        rsh-redone-client
+        openssh-client
     log_info "Runtime dependencies installed successfully"
 }
 
